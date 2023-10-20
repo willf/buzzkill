@@ -1,0 +1,93 @@
+#! /usr/bin/env python
+
+import os
+import re
+
+
+def dictionary(name_or_path):
+    if os.path.exists(name_or_path):
+        return name_or_path
+    else:
+        return os.path.join(os.path.dirname(__file__), name_or_path)
+
+
+def good(probe, target, required, minimum_length):
+    probe_set = set(probe)
+    return (
+        len(probe) >= minimum_length
+        and probe_set.issubset(target)
+        and required.issubset(probe_set)
+    )
+
+def pangram(probe, target):
+    return set(probe) == target
+
+def read_words(f, minimum_length):
+    words = []
+    for line in open(f):
+        word = line.strip()
+        word = word.strip(" \"'")
+        if len(word) >= minimum_length:
+            words.append(word)
+    return words
+
+
+def play(target, required, words, minimum_length):
+    goods = []
+    for word in words:
+        if good(word, target, required, minimum_length):
+            goods.append(word)
+    return goods
+
+
+import optparse
+
+parser = optparse.OptionParser(
+    usage="%prog [options] <letters>",
+    description="Find words that can be made from the given letters. Capitalized letters are required. For example: %prog Vaehlny",
+)
+
+
+parser.add_option(
+    "-d",
+    "--dict",
+    action="store",
+    dest="dictionary",
+    help="list of possible words, one per line",
+    default="words.txt",
+)
+
+parser.add_option(
+    "-m",
+    "--min",
+    action="store",
+    dest="minimum_length",
+    help="minimum length of words to consider",
+    default=4,
+)
+
+
+options, args = parser.parse_args()
+
+letters = args[0]
+
+print(options)
+
+required = set(
+    [let.lower() for let in re.findall(r"[A-Z]", letters)],
+)
+target = set([let.lower() for let in letters])
+words = read_words(options.dictionary, options.minimum_length)
+
+print(
+    "Playing with {} requiring {}. Looking at {} words.".format(
+        target, required, len(words)
+    )
+)
+
+matches = play(target, required, words, options.minimum_length)
+for match in sorted(matches, key=len):
+    if pangram(match, target):
+        print(match, "PANGRAM")
+    else:
+        print(match)
