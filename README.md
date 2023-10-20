@@ -1,6 +1,6 @@
 # buzzkill
 
-Every NY Times spelling bee solved
+Every NY Times spelling bee solved. For emergencies only.
 
 ## Usage
 
